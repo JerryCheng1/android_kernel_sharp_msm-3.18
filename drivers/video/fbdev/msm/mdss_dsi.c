@@ -34,6 +34,9 @@
 #include "mdss_debug.h"
 #include "mdss_dsi_phy.h"
 #include "mdss_dba_utils.h"
+#ifdef CONFIG_SHDISP /* CUST_ID_00021 */
+#include "mdss_shdisp.h"
+#endif /* CONFIG_SHLCDC_BOARD */
 
 #define CMDLINE_DSI_CTL_NUM_STRING_LEN 2
 
@@ -3473,6 +3476,9 @@ static int mdss_dsi_cont_splash_config(struct mdss_panel_info *pinfo,
 		ctrl_pdata->is_phyreg_enabled = 1;
 		if (pinfo->type == MIPI_CMD_PANEL)
 			mdss_dsi_set_burst_mode(ctrl_pdata);
+#ifdef CONFIG_SHDISP /* CUST_ID_00021 */
+		mdss_shdisp_set_dsi_ctrl(ctrl_pdata);
+#endif /* CONFIG_SHLCDC_BOARD */
 		mdss_dsi_clamp_phy_reset_config(ctrl_pdata, true);
 	} else {
 		/* Turn on the clocks to read the DSI and PHY revision */
@@ -4737,9 +4743,13 @@ int dsi_panel_device_register(struct platform_device *ctrl_pdev,
 		}
 	}
 
+#ifndef CONFIG_SHDISP /* CUST_ID_00021 */
 	pinfo->cont_splash_enabled =
 		ctrl_pdata->mdss_util->panel_intf_status(pinfo->pdest,
 		MDSS_PANEL_INTF_DSI) ? true : false;
+#else /* CONFIG_SHDISP */
+	pinfo->cont_splash_enabled = mdss_shdisp_get_disp_status();
+#endif /* CONFIG_SHDISP */
 
 	pr_info("%s: Continuous splash %s\n", __func__,
 		pinfo->cont_splash_enabled ? "enabled" : "disabled");

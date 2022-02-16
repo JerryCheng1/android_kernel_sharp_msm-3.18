@@ -57,8 +57,13 @@
 #define C0_G_Y		0	/* G/luma */
 
 /* wait for at most 2 vsync for lowest refresh rate (24hz) */
+#ifdef CONFIG_SHDISP /* CUST_ID_00066 */
+#define KOFF_TIMEOUT_TIME (84)
+#define KOFF_TIMEOUT msecs_to_jiffies(KOFF_TIMEOUT_TIME)
+#else   /* CONFIG_SHDISP */
 #define KOFF_TIMEOUT_MS 84
 #define KOFF_TIMEOUT msecs_to_jiffies(KOFF_TIMEOUT_MS)
+#endif /* CONFIG_SHDISP */
 
 #define OVERFETCH_DISABLE_TOP		BIT(0)
 #define OVERFETCH_DISABLE_BOTTOM	BIT(1)
@@ -995,6 +1000,12 @@ struct mdss_overlay_private {
 	struct kthread_work vsync_work;
 	struct task_struct *thread;
 
+#ifdef	CONFIG_SHDISP /* CUST_ID_00035 */
+	int fpslow_count;
+#endif /* CONFIG_SHDISP */
+#ifdef CONFIG_SHDISP /* CUST_ID_00063 */
+	struct mutex trans_ctrl_lock;
+#endif /* CONFIG_SHDISP */
 	u8 secure_transition_state;
 
 	bool cache_null_commit; /* Cache if preceding commit was NULL */
@@ -1856,8 +1867,13 @@ int mdss_mdp_pcc_config(struct msm_fb_data_type *mfd,
 int mdss_mdp_igc_lut_config(struct msm_fb_data_type *mfd,
 			struct mdp_igc_lut_data *config, u32 *copyback,
 				u32 copy_from_kernel);
+#ifdef CONFIG_SHDISP /* CUST_ID_00057 */
+int mdss_mdp_argc_config(struct msm_fb_data_type *mfd,
+			struct mdp_pgc_lut_data *config, u32 *copyback, u32 copy_from_kernel);
+#else /* CONFIG_SHDISP */
 int mdss_mdp_argc_config(struct msm_fb_data_type *mfd,
 			struct mdp_pgc_lut_data *config, u32 *copyback);
+#endif /* CONFIG_SHDISP */
 int mdss_mdp_hist_lut_config(struct msm_fb_data_type *mfd,
 			struct mdp_hist_lut_data *config, u32 *copyback);
 int mdss_mdp_pp_default_overlay_config(struct msm_fb_data_type *mfd,
@@ -1998,6 +2014,12 @@ int mdss_mdp_ctl_cmd_get_autorefresh(struct mdss_mdp_ctl *ctl);
 int mdss_mdp_enable_panel_disable_mode(struct msm_fb_data_type *mfd,
 	bool disable_panel);
 void mdss_mdp_ctl_event_timer(void *data);
+
+#ifdef CONFIG_SHDISP /* CUST_ID_00034 */
+void mdss_mdp_ctl_perf_update_ctl(struct mdss_mdp_ctl *ctl,
+					int params_changed);
+#endif /* CONFIG_SHDISP */
+
 int mdss_mdp_pp_get_version(struct mdp_pp_feature_version *version);
 int mdss_mdp_layer_pre_commit_cwb(struct msm_fb_data_type *mfd,
 		struct mdp_layer_commit_v1 *commit);
@@ -2018,6 +2040,14 @@ void mdss_mdp_wb_free(struct mdss_mdp_writeback *wb);
 
 void mdss_mdp_ctl_dsc_setup(struct mdss_mdp_ctl *ctl,
 	struct mdss_panel_info *pinfo);
+#ifdef CONFIG_SHDISP /* CUST_ID_00057 */
+int mdss_mdp_all_gc_lut_config(struct msm_fb_data_type *mfd, struct mdp_all_gc_lut_data *config, u32 *copyback);
+int mdss_mdp_specified_gc_lut_config(struct msm_fb_data_type *mfd, struct mdp_specified_gc_lut_data *config, u32 *copyback);
+#endif /* CONFIG_SHDISP */
+#ifdef CONFIG_SHDISP /* CUST_ID_00064 */
+void mdss_mdp_latency_deny_collapse(void);
+void mdss_mdp_latency_allow_collapse(void);
+#endif /* CONFIG_SHDISP */
 
 void mdss_mdp_video_isr(void *ptr, u32 count);
 void mdss_mdp_enable_hw_irq(struct mdss_data_type *mdata);

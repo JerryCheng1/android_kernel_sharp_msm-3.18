@@ -25,6 +25,9 @@
 
 #include "mdss_dsi.h"
 #include "mdss_dba_utils.h"
+#ifdef CONFIG_SHDISP /* CUST_ID_00011 */ /* CUST_ID_00012 */ /* CUST_ID_00013 */ /* CUST_ID_00014 */
+#include "mdss_shdisp.h"
+#endif /* CONFIG_SHDISP */
 #include "mdss_debug.h"
 
 #define DT_CMD_HDR 6
@@ -64,6 +67,7 @@ end:
 	return status;
 }
 
+#ifndef CONFIG_SHDISP /* CUST_ID_00016 */
 static void mdss_dsi_panel_bklt_pwm(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 {
 	int ret;
@@ -125,6 +129,7 @@ static void mdss_dsi_panel_bklt_pwm(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 		ctrl->pwm_enabled = 1;
 	}
 }
+#endif /* CONFIG_SHDISP */
 
 static char dcs_cmd[2] = {0x54, 0x00}; /* DTYPE_DCS_READ */
 static struct dsi_cmd_desc dcs_read_cmd = {
@@ -210,6 +215,7 @@ static void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
 	mdss_dsi_cmdlist_put(ctrl, &cmdreq);
 }
 
+#ifndef CONFIG_SHDISP	/* CUST_ID_00011 */ /* CUST_ID_00012 */ /* CUST_ID_00013 */ /* CUST_ID_00014 */
 static char led_pwm1[2] = {0x51, 0x0};	/* DTYPE_DCS_WRITE1 */
 static struct dsi_cmd_desc backlight_cmd = {
 	{DTYPE_DCS_WRITE1, 1, 0, 0, 1, sizeof(led_pwm1)},
@@ -296,7 +302,7 @@ rst_gpio_err:
 disp_en_gpio_err:
 	return rc;
 }
-
+#endif /* CONFIG_SHDISP */
 int mdss_dsi_bl_gpio_ctrl(struct mdss_panel_data *pdata, int enable)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
@@ -374,6 +380,7 @@ ret:
 
 int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 {
+#ifndef CONFIG_SHDISP /* CUST_ID_00011 */
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
 	struct mdss_panel_info *pinfo = NULL;
 	int i, rc = 0;
@@ -506,6 +513,14 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 
 exit:
 	return rc;
+#else  /* CONFIG_SHDISP */
+	if(enable){
+		mdss_shdisp_dsi_panel_power_on(pdata);
+	} else {
+		mdss_shdisp_dsi_panel_power_off(pdata);
+	}
+	return 0;
+#endif /* CONFIG_SHDISP */
 }
 
 /**
@@ -793,6 +808,7 @@ static int mdss_dsi_panel_apply_display_setting(struct mdss_panel_data *pdata,
 static void mdss_dsi_panel_switch_mode(struct mdss_panel_data *pdata,
 							int mode)
 {
+#ifndef CONFIG_SHDISP /* CUST_ID_00014 */
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
 	struct mipi_panel_info *mipi;
 	struct dsi_panel_cmds *pcmds;
@@ -844,13 +860,16 @@ static void mdss_dsi_panel_switch_mode(struct mdss_panel_data *pdata,
 	if ((pdata->panel_info.compression_mode == COMPRESSION_DSC) &&
 			(!pdata->panel_info.send_pps_before_switch))
 		mdss_dsi_panel_dsc_pps_send(ctrl_pdata, &pdata->panel_info);
+#endif /* CONFIG_SHDISP */
 }
 
 static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 							u32 bl_level)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
+#ifndef CONFIG_SHDISP /* CUST_ID_00016 */
 	struct mdss_dsi_ctrl_pdata *sctrl = NULL;
+#endif /* CONFIG_SHDISP */
 
 	if (pdata == NULL) {
 		pr_err("%s: Invalid input data\n", __func__);
@@ -876,7 +895,7 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 
 	/* enable the backlight gpio if present */
 	mdss_dsi_bl_gpio_ctrl(pdata, bl_level);
-
+#ifndef CONFIG_SHDISP /* CUST_ID_00016 */
 	switch (ctrl_pdata->bklt_ctrl) {
 	case BL_WLED:
 		led_trigger_event(bl_led_trigger, bl_level);
@@ -913,10 +932,34 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 			__func__);
 		break;
 	}
+#else /* CONFIG_SHDISP */
+	mdss_shdisp_bkl_ctl(bl_level);
+#endif /* CONFIG_SHDISP */
 }
+
+/* COORDINATOR SH_Customize BUILDERR MODIFY start */
+#ifndef CONFIG_SHDISP
+#ifdef TARGET_HW_MDSS_HDMI
+static void mdss_dsi_panel_on_hdmi(struct mdss_dsi_ctrl_pdata *ctrl,
+			struct mdss_panel_info *pinfo)
+{
+	if (ctrl->ds_registered)
+		mdss_dba_utils_video_on(pinfo->dba_data, pinfo);
+}
+#else
+static void mdss_dsi_panel_on_hdmi(struct mdss_dsi_ctrl_pdata *ctrl,
+			struct mdss_panel_info *pinfo)
+{
+	(void)(*ctrl);
+	(void)(*pinfo);
+}
+#endif
+#endif
+/* COORDINATOR SH_Customize BUILDERR MODIFY end */
 
 static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 {
+#ifndef CONFIG_SHDISP /* CUST_ID_00012 */
 	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
 	struct mdss_panel_info *pinfo;
 	struct dsi_panel_cmds *on_cmds;
@@ -962,10 +1005,43 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 end:
 	pr_debug("%s:-\n", __func__);
 	return ret;
+#else /* CONFIG_SHDISP */
+	struct mdss_panel_info *pinfo;
+	pinfo = &pdata->panel_info;
+
+	mdss_shdisp_dsi_panel_on(pdata);
+
+	pr_debug("%s:-\n", __func__);
+	return 0;
+#endif /* CONFIG_SHDISP */
 }
+
+/* COORDINATOR SH_Customize BUILDERR MODIFY start */
+#ifndef CONFIG_SHDISP
+#ifdef TARGET_HW_MDSS_HDMI
+static void mdss_dsi_post_panel_on_hdmi(struct mdss_panel_info *pinfo)
+{
+	u32 vsync_period = 0;
+
+	if (pinfo->is_dba_panel && pinfo->is_pluggable) {
+		/* ensure at least 1 frame transfers to down stream device */
+		vsync_period = (MSEC_PER_SEC / pinfo->mipi.frame_rate) + 1;
+		msleep(vsync_period);
+		mdss_dba_utils_hdcp_enable(pinfo->dba_data, true);
+	}
+}
+#else
+static void mdss_dsi_post_panel_on_hdmi(struct mdss_panel_info *pinfo)
+{
+	(void)(*pinfo);
+}
+#endif
+#endif
+/* COORDINATOR SH_Customize BUILDERR MODIFY end */
 
 static int mdss_dsi_post_panel_on(struct mdss_panel_data *pdata)
 {
+#ifndef CONFIG_SHDISP /* CUST_ID_00012 */
 	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
 	struct mdss_panel_info *pinfo;
 	struct dsi_panel_cmds *cmds;
@@ -1001,10 +1077,37 @@ static int mdss_dsi_post_panel_on(struct mdss_panel_data *pdata)
 end:
 	pr_debug("%s:-\n", __func__);
 	return 0;
+#else /* CONFIG_SHDISP */
+	pr_debug("%s:-\n", __func__);
+	return 0;
+#endif /* CONFIG_SHDISP */
 }
+
+/* COORDINATOR SH_Customize BUILDERR MODIFY start */
+#ifndef CONFIG_SHDISP
+#ifdef TARGET_HW_MDSS_HDMI
+static void mdss_dsi_panel_off_hdmi(struct mdss_dsi_ctrl_pdata *ctrl,
+			struct mdss_panel_info *pinfo)
+{
+	if (ctrl->ds_registered && pinfo->is_pluggable) {
+		mdss_dba_utils_video_off(pinfo->dba_data);
+		mdss_dba_utils_hdcp_enable(pinfo->dba_data, false);
+	}
+}
+#else
+static void mdss_dsi_panel_off_hdmi(struct mdss_dsi_ctrl_pdata *ctrl,
+			struct mdss_panel_info *pinfo)
+{
+	(void)(*ctrl);
+	(void)(*pinfo);
+}
+#endif
+#endif
+/* COORDINATOR SH_Customize BUILDERR MODIFY end */
 
 static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 {
+#ifndef CONFIG_SHDISP /* CUST_ID_00013 */
 	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
 	struct mdss_panel_info *pinfo;
 
@@ -1035,6 +1138,15 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 end:
 	pr_debug("%s:-\n", __func__);
 	return 0;
+#else /* CONFIG_SHDISP */
+	struct mdss_panel_info *pinfo;
+	pinfo = &pdata->panel_info;
+
+	mdss_shdisp_dsi_panel_off(pdata);
+
+	pr_debug("%s:-\n", __func__);
+	return 0;
+#endif /* CONFIG_SHDISP */
 }
 
 static int mdss_dsi_panel_low_power_config(struct mdss_panel_data *pdata,
@@ -1056,7 +1168,16 @@ static int mdss_dsi_panel_low_power_config(struct mdss_panel_data *pdata,
 		enable);
 
 	/* Any panel specific low power commands/config */
-
+	/* Control idle mode for panel */
+/* COORDINATOR SH_Customize BUILDERR MODIFY start
+*  mdss_dsi_panel_set_idle_mode removed from msm-4.4
+#ifndef CONFIG_SHDISP
+	if (enable)
+		mdss_dsi_panel_set_idle_mode(pdata, true);
+	else
+		mdss_dsi_panel_set_idle_mode(pdata, false);
+#endif
+ COORDINATOR SH_Customize BUILDERR MODIFY end */
 	pr_debug("%s:-\n", __func__);
 	return 0;
 }
@@ -2507,7 +2628,11 @@ static int mdss_dsi_panel_timing_from_dt(struct device_node *np,
 		struct mdss_panel_data *panel_data)
 {
 	u32 tmp;
+#ifndef CONFIG_SHDISP /* CUST_ID_00062 */
 	u64 tmp64;
+#else /* CONFIG_SHDISP */
+	u64 tmp64 = 0;
+#endif /* CONFIG_SHDISP */
 	int rc, i, len;
 	const char *data;
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata;
@@ -3029,6 +3154,12 @@ int mdss_dsi_panel_init(struct device_node *node,
 	ctrl_pdata->panel_data.apply_display_setting =
 			mdss_dsi_panel_apply_display_setting;
 	ctrl_pdata->switch_mode = mdss_dsi_panel_switch_mode;
+/* COORDINATOR SH_Customize BUILDERR MODIFY start
+*  mdss_dsi_panel_get_idle_mode removed from msm-4.4
+#ifndef CONFIG_SHDISP
+	ctrl_pdata->panel_data.get_idle = mdss_dsi_panel_get_idle_mode;
+#endif
 
+COORDINATOR SH_Customize BUILDERR MODIFY end */
 	return 0;
 }

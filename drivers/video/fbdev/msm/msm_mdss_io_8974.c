@@ -993,13 +993,96 @@ static void mdss_dsi_8996_phy_regulator_enable(
 	wmb(); /* make sure registers committed */
 }
 
+#ifdef CONFIG_SHDISP /* CUST_ID_00043 */
+void mdss_dsi_8996_phy_timing_config(struct mdss_dsi_ctrl_pdata *ctrl)
+{
+	struct mdss_dsi_phy_ctrl *pd;
+	int j, off, ln, cnt, ln_off;
+	char *ip;
+	void __iomem *base;
+
+	pr_debug("%s: ctrl=0x%p\n", __func__, ctrl);
+
+	pd = &(((ctrl->panel_data).panel_info.mipi).dsi_phy_db);
+
+	if (pd->lanecfg_len != 20) {
+		pr_err("%s: wrong lane cfg\n", __func__);
+		return;
+	}
+
+	if (pd->strength_len != 10) {
+		pr_err("%s: wrong strength ctrl\n", __func__);
+		return;
+	}
+
+	if (pd->regulator_len != 5) {
+		pr_err("%s: wrong regulator setting\n", __func__);
+		return;
+	}
+
+	/* 4 lanes + clk lane configuration */
+	for (ln = 0; ln < 5; ln++) {
+		/*
+		 * data lane offset frome base: 0x100
+		 * data lane size: 0x80
+		 */
+		base = ctrl->phy_io.base +
+				DATALANE_OFFSET_FROM_BASE_8996;
+		base += (ln * DATALANE_SIZE_8996); /* lane base */
+
+		/* lane cfg, 4 * 5 */
+		cnt = 4;
+		ln_off = cnt * ln;
+		ip = &pd->lanecfg[ln_off];
+		off = 0x0;
+		for (j = 0; j < cnt; j++) {
+			MIPI_OUTP(base + off, *ip++);
+			off += 4;
+		}
+
+		/* test str */
+		MIPI_OUTP(base + 0x14, 0x0088);	/* fixed */
+
+		/* phy timing, 8 * 5 */
+		cnt = 8;
+		ln_off = cnt * ln;
+		ip = &pd->timing_8996[ln_off];
+		off = 0x18;
+		for (j = 0; j < cnt; j++, off += 4)
+			MIPI_OUTP(base + off, *ip++);
+
+		/* strength, 2 * 5 */
+		cnt = 2;
+		ln_off = cnt * ln;
+		ip = &pd->strength[ln_off];
+		off = 0x38;
+		for (j = 0; j < cnt; j++, off += 4)
+			MIPI_OUTP(base + off, *ip++);
+	}
+
+	wmb(); /* make sure registers committed */
+	/* reset digital block */
+	MIPI_OUTP((ctrl->phy_io.base) + DSIPHY_CMN_CTRL_1, 0x80);
+	udelay(100);
+	MIPI_OUTP((ctrl->phy_io.base) + DSIPHY_CMN_CTRL_1, 0x00);
+
+	wmb(); /* make sure registers committed */
+}
+#endif /* CONFIG_SHDISP */
+
 static void mdss_dsi_8996_phy_power_off(
 	struct mdss_dsi_ctrl_pdata *ctrl)
 {
 	int ln;
 	void __iomem *base;
+#ifndef CONFIG_SHDISP /* CUST_ID_00068 */
 	u32 data;
+#endif /* CONFIG_SHDISP */
 	struct mdss_panel_info *panel_info;
+
+#ifdef CONFIG_SHDISP /* CUST_ID_00068 */
+	MIPI_OUTP(ctrl->phy_io.base + DSIPHY_CMN_CTRL_0, 0x7f);
+#endif /* CONFIG_SHDISP */
 
 	if (ctrl) {
 		panel_info = &((ctrl->panel_data).panel_info);
@@ -1007,10 +1090,11 @@ static void mdss_dsi_8996_phy_power_off(
 		pr_warn("%s: null ctrl pdata\n", __func__);
 		return;
 	}
-
+#ifndef CONFIG_SHDISP /* CUST_ID_00068 */
 	/* Turn off PLL power */
 	data = MIPI_INP(ctrl->phy_io.base + DSIPHY_CMN_CTRL_0);
 	MIPI_OUTP(ctrl->phy_io.base + DSIPHY_CMN_CTRL_0, data & ~BIT(7));
+#endif /* CONFIG_SHDISP */
 
 	/* data lanes configuration */
 	base = ctrl->phy_io.base + DATALANE_OFFSET_FROM_BASE_8996;
@@ -1078,7 +1162,9 @@ static void mdss_dsi_8996_phy_power_on(
 	void __iomem *base;
 	struct mdss_dsi_phy_ctrl *pd;
 	char *ip;
+#ifndef CONFIG_SHDISP /* CUST_ID_00068 */
 	u32 data;
+#endif /* CONFIG_SHDISP */
 	struct mdss_panel_info *panel_info;
 
 	if (ctrl) {
@@ -1123,9 +1209,11 @@ static void mdss_dsi_8996_phy_power_on(
 
 	mdss_dsi_8996_phy_regulator_enable(ctrl);
 
+#ifndef CONFIG_SHDISP /* CUST_ID_00068 */
 	/* Turn on PLL power */
 	data = MIPI_INP(ctrl->phy_io.base + DSIPHY_CMN_CTRL_0);
 	MIPI_OUTP(ctrl->phy_io.base + DSIPHY_CMN_CTRL_0, data | BIT(7));
+#endif /* CONFIG_SHDISP */
 }
 
 static void mdss_dsi_phy_power_on(
@@ -1291,7 +1379,9 @@ static void mdss_dsi_8996_phy_config(struct mdss_dsi_ctrl_pdata *ctrl)
 			mdss_dsi_8996_pll_source_standalone(ctrl);
 	}
 
+#ifndef CONFIG_SHDISP /* CUST_ID_00068 */
 	MIPI_OUTP(ctrl->phy_io.base + DSIPHY_CMN_CTRL_0, 0x7f);
+#endif /* CONFIG_SHDISP */
 	wmb(); /* make sure registers committed */
 }
 
@@ -1862,10 +1952,12 @@ static u8 mdss_dsi_get_bpp(char dst_format)
 
 u64 mdss_dsi_calc_bitclk(struct mdss_panel_info *panel_info, int frame_rate)
 {
+#ifndef CONFIG_SHDISP /* CUST_ID_00025 */
 	struct mdss_panel_data *pdata  = container_of(panel_info,
 		struct mdss_panel_data, panel_info);
 	struct  mdss_dsi_ctrl_pdata *ctrl_pdata = container_of(pdata,
 		struct mdss_dsi_ctrl_pdata, panel_data);
+#endif /* CONFIG_SHDISP */
 	u64 h_period, v_period, clk_rate = 0;
 	u8 lanes = 0, bpp;
 
@@ -1878,8 +1970,13 @@ u64 mdss_dsi_calc_bitclk(struct mdss_panel_info *panel_info, int frame_rate)
 		h_period *= panel_info->mipi.num_of_sublinks;
 	v_period = mdss_panel_get_vtotal(panel_info);
 
+#ifdef CONFIG_SHDISP /* CUST_ID_00025 */
+	if ((frame_rate != panel_info->mipi.frame_rate) ||
+	    (!panel_info->clk_rate)) {
+#else /* CONFIG_SHDISP */
 	if (ctrl_pdata->refresh_clk_rate || is_diff_frame_rate(panel_info,
 		frame_rate) || (!panel_info->clk_rate)) {
+#endif /* CONFIG_SHDISP */
 		clk_rate = h_period * v_period * frame_rate * bpp * 8;
 		do_div(clk_rate, lanes);
 	} else if (panel_info->clk_rate) {
