@@ -751,7 +751,10 @@
 				config {
 					pins = "gpio27", "gpio28";
 					drive-strength = <2>;
-					bias-pull-up;
+/* SH_CAMERA_DRIVER-> */
+//					bias-pull-up;
+					bias-pull-down; /* PULL DOWN */
+/* SH_CAMERA_DRIVER<- */
 				};
 			};
 
@@ -1358,7 +1361,10 @@
 				config {
 					pins = "gpio54";
 					drive-strength = <2>; /* 2 mA */
-					bias-pull-down; /* pull down */
+/* SH_AUDIO_DRIVER -> */ /*21-072*/
+//					bias-pull-down; /* pull down */
+					bias-disable; /* pull down */
+/* SH_AUDIO_DRIVER <- */ /*21-072*/
 					input-enable;
 				};
 			};
@@ -1372,7 +1378,10 @@
 				};
 				config {
 					pins = "gpio64";
-					drive-strength = <16>;
+/* SH_AUDIO_DRIVER -> */ /*21-072*/
+//					drive-strength = <16>;
+					drive-strength = <2>;
+/* SH_AUDIO_DRIVER <- */ /*21-072*/
 					bias-disable;
 					output-low;
 				};
@@ -1384,8 +1393,12 @@
 				};
 				config {
 					pins = "gpio64";
-					drive-strength = <16>;
-					bias-pull-down;
+/* SH_AUDIO_DRIVER -> */ /*21-072*/
+//					drive-strength = <16>;
+//					bias-pull-down;
+					drive-strength = <2>;
+					bias-disable;
+/* SH_AUDIO_DRIVER <- */ /*21-072*/
 					output-high;
 				};
 			};
@@ -1921,8 +1934,12 @@
 
 			config {
 				pins = "gpio19","gpio20";
-				bias-pull-up; /* PULL UP*/
-				drive-strength = <2>; /* 2 MA */
+/* SH_CAMERA_DRIVER-> */
+//				bias-pull-up; /* PULL UP*/
+//				drive-strength = <2>; /* 2 MA */
+				bias-disable;		/* NO pull */
+				drive-strength = <4>; /* 4 MA */
+/* SH_CAMERA_DRIVER<- */
 			};
 		};
 
@@ -1936,7 +1953,10 @@
 			config {
 				pins = "gpio19","gpio20";
 				bias-pull-down; /* PULL DOWN */
-				drive-strength = <2>; /* 2 MA */
+/* SH_CAMERA_DRIVER-> */
+//				drive-strength = <2>; /* 2 MA */
+				drive-strength = <4>; /* 4 MA */
+/* SH_CAMERA_DRIVER<- */
 			};
 		};
 
@@ -1951,7 +1971,10 @@
 			config {
 				pins = "gpio13";
 				bias-disable; /* No PULL */
-				drive-strength = <2>; /* 2 MA */
+/* SH_CAMERA_DRIVER-> */
+//				drive-strength = <2>; /* 2 MA */
+				drive-strength = <4>; /* 4 MA */
+/* SH_CAMERA_DRIVER<- */
 			};
 		};
 
@@ -1965,8 +1988,12 @@
 
 			config {
 				pins = "gpio13";
-				bias-pull-down; /* PULL DOWN */
-				drive-strength = <2>; /* 2 MA */
+/* SH_CAMERA_DRIVER-> */
+//				bias-pull-down; /* PULL DOWN */
+//				drive-strength = <2>; /* 2 MA */
+				bias-disable; /* No PULL */
+				drive-strength = <4>; /* 4 MA */
+/* SH_CAMERA_DRIVER<- */
 			};
 		};
 
@@ -1978,7 +2005,10 @@
 			};
 
 			config {
-				pins = "gpio30","gpio29";
+/* SH_CAMERA_DRIVER-> */
+//				pins = "gpio30","gpio29";
+				pins = "gpio30";
+/* SH_CAMERA_DRIVER<- */
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -1987,12 +2017,18 @@
 		cam_sensor_rear_suspend: cam_sensor_rear_suspend{
 			/* RESET, STANDBY */
 			mux {
-				pins = "gpio30","gpio29";
+/* SH_CAMERA_DRIVER-> */
+//				pins = "gpio30","gpio29";
+				pins = "gpio30";
+/* SH_CAMERA_DRIVER<- */
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio30","gpio29";
+/* SH_CAMERA_DRIVER-> */
+//				pins = "gpio30","gpio29";
+				pins = "gpio30";
+/* SH_CAMERA_DRIVER<- */
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -2123,7 +2159,10 @@
 			config {
 				pins = "gpio15";
 				bias-disable; /* No PULL */
-				drive-strength = <2>; /* 2 MA */
+/* SH_CAMERA_DRIVER-> */
+//				drive-strength = <2>; /* 2 MA */
+				drive-strength = <4>; /* 4 MA */
+/* SH_CAMERA_DRIVER<- */
 			};
 		};
 
@@ -2137,20 +2176,30 @@
 
 			config {
 				pins = "gpio15";
-				bias-pull-down; /* PULL DOWN */
-				drive-strength = <2>; /* 2 MA */
+/* SH_CAMERA_DRIVER-> */
+//				bias-pull-down; /* PULL DOWN */
+//				drive-strength = <2>; /* 2 MA */
+				bias-disable; /* No PULL */
+				drive-strength = <4>; /* 4 MA */
+/* SH_CAMERA_DRIVER<- */
 			};
 		};
 
 		cam_sensor_front_active: cam_sensor_front_active{
 			/* RESET, STANDBY */
 			mux {
-				pins = "gpio23","gpio26";
+/* SH_CAMERA_DRIVER-> */
+//				pins = "gpio23","gpio26";
+				pins = "gpio23";
+/* SH_CAMERA_DRIVER<- */
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio23","gpio26";
+/* SH_CAMERA_DRIVER-> */
+//				pins = "gpio23","gpio26";
+				pins = "gpio23";
+/* SH_CAMERA_DRIVER<- */
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -2159,12 +2208,18 @@
 		cam_sensor_front_suspend: cam_sensor_front_suspend{
 			/* RESET, STANDBY */
 			mux {
-				pins = "gpio23","gpio26";
+/* SH_CAMERA_DRIVER-> */
+//				pins = "gpio23","gpio26";
+				pins = "gpio23";
+/* SH_CAMERA_DRIVER<- */
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio23","gpio26";
+/* SH_CAMERA_DRIVER-> 1*/
+//				pins = "gpio23","gpio26";
+				pins = "gpio23";
+/* SH_CAMERA_DRIVER<- */
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};

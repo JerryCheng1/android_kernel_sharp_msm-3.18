@@ -182,4 +182,10 @@ config ARCH_ZYNQMP
 	help
 	  This enables support for Xilinx ZynqMP Family
 
+config ARCH_PA32
+	depends on ARCH_MSM8996
+	bool "SHARP PA32"
+	help
+	  Support for Sharp pa32
+
 endmenu
