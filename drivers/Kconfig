@@ -213,5 +213,7 @@ source "drivers/bif/Kconfig"
 source "drivers/sensors/Kconfig"
 
 source "drivers/tee/Kconfig"
+# SH drivers
+source "drivers/sharp/Kconfig"
 
 endmenu
