@@ -18,6 +18,15 @@
 
 #include "input-event-codes.h"
 
+#ifdef CONFIG_ARCH_PA32
+#ifdef CONFIG_TOUCHSCREEN_SHTPS
+#define KEY_DOUBLETAP	197
+#define KEY_SWEEPON		198
+#endif /* CONFIG_TOUCHSCREEN_SHTPS */
+#define SW_GRIP_00	0x1d
+#define SW_GRIP_01	0x1e
+#define SW_GRIP_02	0x1f
+#endif
 /*
  * The event structure itself
  */
