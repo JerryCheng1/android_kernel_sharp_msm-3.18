@@ -31,6 +31,10 @@
 #include <linux/dma-mapping.h>
 #include <linux/msm_audio_ion.h>
 #include <linux/msm_audio.h>
+#ifdef CONFIG_SH_AUDIO_DRIVER /* D-009 */
+#include <linux/reboot.h>
+#define SH_ADSP_ERR_MAX 10
+#endif  /* CONFIG_SH_AUDIO_DRIVER */ /* D-009 */
 
 #include <linux/of_device.h>
 #include <sound/tlv.h>
@@ -1110,6 +1114,10 @@ static int msm_pcm_hw_params(struct snd_pcm_substream *substream,
 	struct audio_buffer *buf;
 	int dir, ret;
 
+#ifdef CONFIG_SH_AUDIO_DRIVER /* D-009 */
+	static int sh_adsp_error_counter = 0;
+#endif  /* CONFIG_SH_AUDIO_DRIVER */ /* D-009 */
+
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
 		dir = IN;
 	else
@@ -1121,7 +1129,17 @@ static int msm_pcm_hw_params(struct snd_pcm_substream *substream,
 	if (ret < 0) {
 		pr_err("Audio Start: Buffer Allocation failed rc = %d\n",
 							ret);
+#ifdef CONFIG_SH_AUDIO_DRIVER /* D-009 */
+		if (++sh_adsp_error_counter == SH_ADSP_ERR_MAX) {
+			pr_err("Detect unexpected aDSP error for %d times, force reboot\n", SH_ADSP_ERR_MAX);
+			kernel_restart(NULL);
+		}
+#endif  /* CONFIG_SH_AUDIO_DRIVER */ /* D-009 */
 		return -ENOMEM;
+#ifdef CONFIG_SH_AUDIO_DRIVER /* D-009 */
+	} else {
+		sh_adsp_error_counter = 0;
+#endif  /* CONFIG_SH_AUDIO_DRIVER */ /* D-009 */
 	}
 	buf = prtd->audio_client->port[dir].buf;
 	if (buf == NULL || buf[0].data == NULL)
