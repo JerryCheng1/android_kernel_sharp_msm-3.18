@@ -587,6 +587,13 @@ config LEDS_POWERNV
 	  To compile this driver as a module, choose 'm' here: the module
 	  will be called leds-powernv.
 
+config LEDS_QPNP_SCHAPTIC
+	bool "Sc Haptic customize"
+	default n
+	depends on LEDS_QPNP_HAPTICS
+	help
+	  Say 'y' here if you want to enable the Haptic driver for the SC customize.
+
 config LEDS_QPNP
 	tristate "Support for QPNP LEDs"
 	depends on LEDS_CLASS && SPMI

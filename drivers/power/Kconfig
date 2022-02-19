@@ -8,6 +8,20 @@ menuconfig POWER_SUPPLY
 
 if POWER_SUPPLY
 
+menu "SHARP Battery Driver"
+
+comment "Battery Control Configuration"
+
+config BATTERY_SH
+	tristate "SHARP Battery Control support"
+	depends on SPMI
+	depends on QPNP_SMBCHARGER
+	depends on QPNP_FG
+	help
+	  Say Y to enable support for the battery in SH.
+
+endmenu
+
 config POWER_SUPPLY_DEBUG
 	bool "Power supply debug"
 	help

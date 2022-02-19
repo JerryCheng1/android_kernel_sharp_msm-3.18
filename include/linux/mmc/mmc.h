@@ -221,6 +221,9 @@ struct _mmc_csd {
  */
 
 #define EXT_CSD_CMDQ			15	/* R/W */
+#ifdef CONFIG_FFU_EMMC_CUST_SH
+#define EXT_CSD_FFU_STATUS		26	/* RO */
+#endif /* CONFIG_FFU_EMMC_CUST_SH */
 #define EXT_CSD_BARRIER_CTRL		31      /* R/W */
 #define EXT_CSD_FLUSH_CACHE		32      /* W */
 #define EXT_CSD_CACHE_CTRL		33      /* R/W */
@@ -242,6 +245,9 @@ struct _mmc_csd {
 #define EXT_CSD_WR_REL_PARAM		166	/* RO */
 #define EXT_CSD_RPMB_MULT		168	/* RO */
 #define EXT_CSD_FW_CONFIG		169	/* R/W */
+#ifdef CONFIG_FFU_EMMC_CUST_SH
+#define EXT_CSD_FW_CONFIG		169	/* RO */
+#endif /* CONFIG_FFU_EMMC_CUST_SH */
 #define EXT_CSD_BOOT_WP			173	/* R/W */
 #define EXT_CSD_ERASE_GROUP_DEF		175	/* R/W */
 #define EXT_CSD_PART_CONFIG		179	/* R/W */
@@ -290,6 +296,12 @@ struct _mmc_csd {
 #define EXT_CSD_BARRIER_SUPPORT		486	/* RO */
  #define EXT_CSD_TAG_UNIT_SIZE		498	/* RO */
 #define EXT_CSD_SUPPORTED_MODE		493	/* RO */
+#ifdef CONFIG_FFU_EMMC_CUST_SH
+#define EXT_CSD_FIRMWARE_VERSION	254	/* RO */
+#define EXT_CSD_NUM_OF_FW_SECTORS_PRG	302	/* RO */
+#define EXT_CSD_FFU_ARG			487	/* RO */
+#define EXT_CSD_SUPPORTED_MODES		493	/* RO */
+#endif /* CONFIG_FFU_EMMC_CUST_SH */
 #define EXT_CSD_TAG_UNIT_SIZE		498	/* RO */
 #define EXT_CSD_DATA_TAG_SUPPORT	499	/* RO */
 #define EXT_CSD_MAX_PACKED_WRITES	500	/* RO */
@@ -387,6 +399,12 @@ struct _mmc_csd {
 
 #define EXT_CSD_PACKED_GENERIC_ERROR	BIT(0)
 #define EXT_CSD_PACKED_INDEXED_ERROR	BIT(1)
+
+#ifdef CONFIG_MMC_CUST_SH
+  #define HOST_MMC_MMC 	"mmc0"
+  #define HOST_MMC_SD 	"mmc1"
+  #define HOST_MMC_SDIO "mmc2"
+#endif /* CONFIG_MMC_CUST_SH */
 
 /*
  * BKOPS status level

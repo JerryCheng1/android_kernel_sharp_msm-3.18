@@ -147,11 +147,6 @@ obj-$(CONFIG_STAGING)		+= staging/
 obj-y				+= platform/
 #common clk code
 obj-y				+= clk/
-obj-$(CONFIG_SHBOOT_CUST)	+= sharp/shboot/
-obj-$(CONFIG_SHDISP)        += sharp/shdisp/
-#/* SH_AUDIO_DRIVER -> */ /* 21-002 */
-obj-$(CONFIG_SH_AUDIO_SMARTAMP) += sharp/shaudio/
-#/* SH_AUDIO_DRIVER <- */ /* 21-002 */
 
 # iommu/ comes before gpu as gpu are using iommu controllers
 obj-$(CONFIG_IOMMU_SUPPORT)	+= iommu/
@@ -190,5 +185,22 @@ obj-$(CONFIG_BIF)		+= bif/
 obj-$(CONFIG_SENSORS_SSC)	+= sensors/
 obj-$(CONFIG_ESOC)              += esoc/
 obj-$(CONFIG_TEE)		+= tee/
+#SH Customized
+obj-$(CONFIG_SHUB)		+= sharp/shsensor_hub/ml630q790/
 obj-$(CONFIG_TOUCHSCREEN_SHTPS) += sharp/shtps/
+obj-$(CONFIG_TOSHIBA_NFC)	+= sharp/nfc/
+obj-$(CONFIG_SH_FLIP_SWITCH) += sharp/shflip/
 obj-$(CONFIG_SENSOR_SHGRIP)	+= sharp/shgrip/
+#obj-$(CONFIG_SHVOLD_KILLPROCESS) += sharp/vold/
+obj-$(CONFIG_DTV_TUNERDEV_TMM)	+= sharp/tunerdrv_tmm/
+#obj-$(CONFIG_SHLOG_SYSTEM)      += sharp/shlog/
+obj-$(CONFIG_SENSORS_FINGERPRINT) += sharp/shfpsensor/
+obj-$(CONFIG_SHSYS_CUST)	+= sharp/shsys/
+#obj-$(CONFIG_SHTERM)		+= sharp/shterm/
+obj-$(CONFIG_SHBOOT_CUST)	+= sharp/shboot/
+#obj-$(CONFIG_SHDIAG)		+= sharp/shdiag/
+#obj-$(CONFIG_BATTERY_SH)	+= sharp/shbatt/
+obj-$(CONFIG_SHDISP)        += sharp/shdisp/
+obj-$(CONFIG_SENSORS_PROXIMITY) += sharp/proximity/
+#obj-$(CONFIG_SHTIMER)		+= sharp/shtimer/
+obj-$(CONFIG_SH_AUDIO_SMARTAMP) += sharp/shaudio/

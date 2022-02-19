@@ -312,6 +312,10 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(enable_jeita_detection),
 	POWER_SUPPLY_ATTR(allow_hvdcp3),
 	POWER_SUPPLY_ATTR(max_pulse_allowed),
+#ifdef CONFIG_BATTERY_SH
+	POWER_SUPPLY_ATTR(temp_cold),
+	POWER_SUPPLY_ATTR(temp_hot),
+#endif /* CONFIG_BATTERY_SH */
 	/* Local extensions of type int64_t */
 	POWER_SUPPLY_ATTR(charge_counter_ext),
 	/* Properties of type `const char *' */
@@ -343,6 +347,10 @@ static umode_t power_supply_attr_is_visible(struct kobject *kobj,
 			if (psy->desc->property_is_writeable &&
 			    psy->desc->property_is_writeable(psy, property) > 0)
 				mode |= S_IWUSR;
+#ifdef CONFIG_BATTERY_SH
+			if (attrno == POWER_SUPPLY_PROP_VOLTAGE_MAX)
+				mode |= S_IWGRP;
+#endif
 
 			return mode;
 		}
