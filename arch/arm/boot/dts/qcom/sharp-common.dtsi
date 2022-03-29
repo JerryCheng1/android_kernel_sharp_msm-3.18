@@ -41,9 +41,9 @@
 		/delete-node/ i2c@75b6000;
 		/delete-node/ i2c@75ba000;
 		/delete-node/ spi@7575000;
-		/delete-node/ uart@07570000;
-		/delete-node/ serial@07570000;
-		/delete-node/ serial@075b0000;
+		/delete-node/ uart@7570000;
+		/delete-node/ serial@7570000;
+//		/delete-node/ serial@75b0000; /* uartblsp2dm1 is non-existent node */
 
 		qcom,msm-dai-mi2s {
 			dai_mi2s: qcom,msm-dai-q6-mi2s-tert {
@@ -111,7 +111,7 @@
 	/*---------------------*/
 	/* BLSP1 UART1(BLSP#2) */
 	/*---------------------*/
-	blsp1_uart2: uart@07570000 {
+	blsp1_uart2: uart@7570000 {
 		compatible = "qcom,msm-hsuart-v14";
 		reg = <0x07570000 0x1000>,
 		    <0x7544000 0x2b000>;
@@ -155,7 +155,7 @@
 	/*---------------------*/
 	/* BLSP1 UART2(BLSP#3) */
 	/*---------------------*/
-	blsp1_uart3: uart@07571000 {
+	blsp1_uart3: uart@7571000 {
 		compatible = "qcom,msm-hsuart-v14";
 		reg = <0x07571000 0x1000>,
 		    <0x7544000 0x2b000>;

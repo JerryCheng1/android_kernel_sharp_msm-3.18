@@ -2291,7 +2291,7 @@ static inline struct qpnp_adc_tm_chip *qpnp_get_adc_tm(struct device *dev,
 int32_t shbatt_vadc_channel_read(
 	enum qpnp_vadc_channels		channel,
 	struct qpnp_vadc_result*	result );
-int qpnp_smb_vdir_chg_pin_enable(bool enable);
+int qpnp_smb_vdir_chg_pin_enable(struct regmap *map, bool enable);
 #endif /* CONFIG_BATTERY_SH */
 
 #endif

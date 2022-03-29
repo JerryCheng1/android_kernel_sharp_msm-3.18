@@ -2137,7 +2137,8 @@ static u8 data_st = 0;
 #define SMBCHG_CHGR_CFG_WRITE_EN_ADDR	0x10d0
 #define SMBCHG_CHGR_CFG_CFG_VCHG_IIN	0x0A
 #define SMBCHG_CHGR_CFG_WRITE_EN	0xA5
-int qpnp_smb_vdir_chg_pin_enable(bool enable){
+int qpnp_smb_vdir_chg_pin_enable(struct regmap *map, bool enable)
+{
 
 	int rc   = 0;
 	u16 addr = 0;
@@ -2146,7 +2147,7 @@ int qpnp_smb_vdir_chg_pin_enable(bool enable){
 	addr = SMBCHG_CHGR_CFG_WRITE_EN_ADDR;
 	data = SMBCHG_CHGR_CFG_WRITE_EN;
 
-	rc = spmi_ext_register_writel(spmi_busnum_to_ctrl(0), 2, addr, &data, 1);
+	rc = regmap_bulk_write(map, addr, &data, 1);
 
 	if (rc < 0) {
 		pr_err("SMBCHG_CHGR_CFG_WRITE_EN write error 0x%x write error = %d\n", addr, rc);
@@ -2155,31 +2156,30 @@ int qpnp_smb_vdir_chg_pin_enable(bool enable){
 	addr = SMBCHG_CHGR_CFG_CFG_VCHG_ADDR;
 	data = SMBCHG_CHGR_CFG_CFG_VCHG_IIN;
 
-	if(enable){
+	if (enable) {
 
-		rc = spmi_ext_register_readl(spmi_busnum_to_ctrl(0), 2, addr, &data_st, 1);
+		rc = regmap_bulk_read(map, addr, &data_st, 1);
 
 		if (rc < 0) {
 			pr_err("SMBCHG_CHGR_CFG_CFG_VCHG_IIN read error 0x%x write error = %d\n", addr, rc);
 		}
 
-		rc = spmi_ext_register_writel(spmi_busnum_to_ctrl(0), 2, addr, &data, 1);
+		rc = regmap_bulk_write(map, addr, &data, 1);
 
 		if (rc < 0) {
 			pr_err("SMBCHG_CHGR_CFG_CFG_VCHG_IIN write error 0x%x write error = %d\n", addr, rc);
 		}
 
-	}else if(!enable){
+	} else if (!enable) {
 
 		data = data_st;
 
-		rc = spmi_ext_register_writel(spmi_busnum_to_ctrl(0), 2, addr, &data, 1);
+		rc = regmap_bulk_write(map, addr, &data, 1);
 
 		if (rc < 0) {
 			pr_err("SMBCHG_CHGR_CFG_CFG_VCHG_IIN write error 0x%x write error = %d\n", addr, rc);
 		}
 	}
-
 	return rc;
 }
 EXPORT_SYMBOL(qpnp_smb_vdir_chg_pin_enable);

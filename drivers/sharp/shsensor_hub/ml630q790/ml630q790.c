@@ -9453,7 +9453,8 @@ void shub_debug_level_chg(int32_t lv)
 int32_t shub_suspend( struct i2c_client *client, pm_message_t mesg )
 #endif
 #ifdef CONFIG_HOSTIF_SPI
-int32_t shub_suspend( struct spi_device *client, pm_message_t mesg )
+//int32_t shub_suspend( struct spi_device *client, pm_message_t mesg ) /* SHMDS_HUB_0130_01 del */
+int32_t shub_suspend( struct device *dev, pm_message_t mesg )          /* SHMDS_HUB_0130_01 add */
 #endif
 {
     SHUB_DBG_TIME_INIT     /* SHMDS_HUB_1801_01 add */
@@ -9525,7 +9526,8 @@ ERROR:
 int32_t shub_resume( struct i2c_client *client )
 #endif
 #ifdef CONFIG_HOSTIF_SPI
-int32_t shub_resume( struct spi_device *client )
+//int32_t shub_resume( struct spi_device *client ) /* SHMDS_HUB_0130_01 del */
+int32_t shub_resume( struct device *dev )          /* SHMDS_HUB_0130_01 add */
 #endif
 {
     SHUB_DBG_TIME_INIT     /* SHMDS_HUB_1801_01 add */

@@ -803,6 +803,88 @@ static int qpnp_haptics_play_control(struct hap_chip *chip,
 	return rc;
 }
 
+#ifdef CONFIG_LEDS_QPNP_SCHAPTIC
+static int qpnp_haptics_smem_config(struct hap_chip *chip)
+{
+	int rc = 0;
+	int i;
+	sharp_smem_common_type *p_sh_smem_common_type = NULL;
+	u8 param[4];
+
+	p_sh_smem_common_type = sh_smem_get_common_address();
+	if (!p_sh_smem_common_type) {
+		dev_err(&chip->pdev->dev, "[qpnp_haptics]p_sh_smem_common_type is null\n");
+		return 1;
+	}
+	for (i=0; i<4; i++) {
+		param[i] = (u8)p_sh_smem_common_type->shdiag_vib_param[i];
+		dev_dbg(&chip->pdev->dev, "[qpnp_haptics]smem param[%d]:0x%02X, ", i, param[i]);
+	}
+	dev_dbg(&chip->pdev->dev, "\n");
+
+	if (!param[0] && !param[1] && !param[2] && !param[3]) {
+		dev_dbg(&chip->pdev->dev, "[qpnp_haptics]org_param write, qpnp_haptics_set_smem_param:%d\n", qpnp_haptics_set_smem_param);
+		if (qpnp_haptics_set_smem_param) {
+			rc = qpnp_haptics_write_reg(chip, HAP_LRA_AUTO_RES_REG(chip), &(chip->auto_res_reg), 1);
+			if (rc) {
+				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_LRA_AUTO_RES_REG org_param write err rc:%d\n", rc);
+				return rc;
+			}
+			rc = qpnp_haptics_write_reg(chip, HAP_VMAX_CFG_REG(chip), &(chip->vmax_reg), 1);
+			if (rc){
+				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_VMAX_CFG_REG org_param write err rc:%d\n", rc);
+				return rc;
+			}
+			rc = qpnp_haptics_write_reg(chip, HAP_RATE_CFG1_REG(chip), &(chip->rate_cfg1_reg), 1);
+			if (rc){
+				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_RATE_CFG1_REG org_param write err rc:%d\n", rc);
+				return rc;
+			}
+			rc = qpnp_haptics_write_reg(chip, HAP_RATE_CFG2_REG(chip), &(chip->rate_cfg2_reg), 1);
+			if (rc){
+				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_RATE_CFG2_REG org_param write err rc:%d\n", rc);
+				return rc;
+			}
+			qpnp_haptics_set_smem_param = false;
+		} 
+	} else {
+		dev_dbg(&chip->pdev->dev, "[qpnp_haptics]smem_param write\n");
+		qpnp_haptics_set_smem_param = true;
+
+		if ((param[0] == 0) || (param[0] == HAP_LRA_AUTO_RES_PARAM)) {
+			rc = qpnp_haptics_write_reg(chip, HAP_LRA_AUTO_RES_REG(chip), &param[0], 1);
+			if (rc) {
+				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_LRA_AUTO_RES_REG smem_param write err rc:%d\n", rc);
+				return rc;
+			}
+		} else {
+			dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_LRA_AUTO_RES_REG smem_param write param err param:0x%02x\n", rc);
+		}
+		if ((param[1] >= HAP_VMAX_MIN_REG) && (param[1] <= HAP_VMAX_MAX_REG)) {
+
+			rc = qpnp_haptics_write_reg(chip, HAP_VMAX_CFG_REG(chip), &param[1], 1);
+			if (rc) {
+				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_VMAX_CFG_REG smem_param write err rc:%d\n", rc);
+				return rc;
+			}
+		} else {
+			dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_VMAX_CFG_REG smem_param write param err param:0x%02x\n", rc);
+		}
+		rc = qpnp_haptics_write_reg(chip, HAP_RATE_CFG1_REG(chip), &param[2], 1);
+		if (rc) {
+			dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_RATE_CFG1_REG smem_param write err rc:%d\n", rc);
+			return rc;
+		}
+		rc = qpnp_haptics_write_reg(chip, HAP_RATE_CFG2_REG(chip), &param[3], 1);
+		if (rc) {
+			dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_RATE_CFG2_REG smem_param write err rc:%d\n", rc);
+			return rc;
+		}
+	}
+	return rc;
+}
+#endif /* CONFIG_LEDS_QPNP_SCHAPTIC */
+
 #define AUTO_RES_ERR_POLL_TIME_NS	(20 * NSEC_PER_MSEC)
 static int qpnp_haptics_play(struct hap_chip *chip, bool enable)
 {
@@ -1254,88 +1336,6 @@ static int qpnp_haptics_vmax_config(struct hap_chip *chip, int vmax_mv,
 			HAP_VMAX_MASK | HAP_VMAX_OVD_BIT, val);
 	return rc;
 }
-
-#ifdef CONFIG_LEDS_QPNP_SCHAPTIC
-static int qpnp_haptics_smem_config(struct hap_chip *chip)
-{
-	int rc = 0;
-	int i;
-	sharp_smem_common_type *p_sh_smem_common_type = NULL;
-	u8 param[4];
-
-	p_sh_smem_common_type = sh_smem_get_common_address();
-	if (!p_sh_smem_common_type) {
-		dev_err(&chip->pdev->dev, "[qpnp_haptics]p_sh_smem_common_type is null\n");
-		return 1;
-	}
-	for (i=0; i<4; i++) {
-		param[i] = (u8)p_sh_smem_common_type->shdiag_vib_param[i];
-		dev_dbg(&chip->pdev->dev, "[qpnp_haptics]smem param[%d]:0x%02X, ", i, param[i]);
-	}
-	dev_dbg(&chip->pdev->dev, "\n");
-
-	if (!param[0] && !param[1] && !param[2] && !param[3]) {
-		dev_dbg(&chip->pdev->dev, "[qpnp_haptics]org_param write, qpnp_haptics_set_smem_param:%d\n", qpnp_haptics_set_smem_param);
-		if (qpnp_haptics_set_smem_param) {
-			rc = qpnp_haptics_write_reg(chip, HAP_LRA_AUTO_RES_REG(chip->base), &(chip->auto_res_reg), 1);
-			if (rc) {
-				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_LRA_AUTO_RES_REG org_param write err rc:%d\n", rc);
-				return rc;
-			}
-			rc = qpnp_haptics_write_reg(chip, HAP_VMAX_CFG_REG(chip->base), &(chip->vmax_reg), 1);
-			if (rc){
-				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_VMAX_CFG_REG org_param write err rc:%d\n", rc);
-				return rc;
-			}
-			rc = qpnp_haptics_write_reg(chip, HAP_RATE_CFG1_REG(chip->base), &(chip->rate_cfg1_reg), 1);
-			if (rc){
-				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_RATE_CFG1_REG org_param write err rc:%d\n", rc);
-				return rc;
-			}
-			rc = qpnp_haptics_write_reg(chip, HAP_RATE_CFG2_REG(chip->base), &(chip->rate_cfg2_reg), 1);
-			if (rc){
-				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_RATE_CFG2_REG org_param write err rc:%d\n", rc);
-				return rc;
-			}
-			qpnp_haptics_set_smem_param = false;
-		} 
-	} else {
-		dev_dbg(&chip->pdev->dev, "[qpnp_haptics]smem_param write\n");
-		qpnp_haptics_set_smem_param = true;
-
-		if ((param[0] == 0) || (param[0] == HAP_LRA_AUTO_RES_PARAM)) {
-			rc = qpnp_haptics_write_reg(chip, HAP_LRA_AUTO_RES_REG(chip->base), &param[0], 1);
-			if (rc) {
-				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_LRA_AUTO_RES_REG smem_param write err rc:%d\n", rc);
-				return rc;
-			}
-		} else {
-			dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_LRA_AUTO_RES_REG smem_param write param err param:0x%02x\n", rc);
-		}
-		if ((param[1] >= HAP_VMAX_MIN_REG) && (param[1] <= HAP_VMAX_MAX_REG)) {
-
-			rc = qpnp_haptics_write_reg(chip, HAP_VMAX_CFG_REG(chip->base), &param[1], 1);
-			if (rc) {
-				dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_VMAX_CFG_REG smem_param write err rc:%d\n", rc);
-				return rc;
-			}
-		} else {
-			dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_VMAX_CFG_REG smem_param write param err param:0x%02x\n", rc);
-		}
-		rc = qpnp_haptics_write_reg(chip, HAP_RATE_CFG1_REG(chip->base), &param[2], 1);
-		if (rc) {
-			dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_RATE_CFG1_REG smem_param write err rc:%d\n", rc);
-			return rc;
-		}
-		rc = qpnp_haptics_write_reg(chip, HAP_RATE_CFG2_REG(chip->base), &param[3], 1);
-		if (rc) {
-			dev_err(&chip->pdev->dev, "[qpnp_haptics]HAP_RATE_CFG2_REG smem_param write err rc:%d\n", rc);
-			return rc;
-		}
-	}
-	return rc;
-}
-#endif /* CONFIG_LEDS_QPNP_SCHAPTIC */
 
 /* configuration api for ilim */
 static int qpnp_haptics_ilim_config(struct hap_chip *chip)

@@ -50,8 +50,14 @@
 
 static int32_t spi_probe( struct spi_device *client );
 static int32_t spi_remove( struct spi_device *client );
-static int32_t spi_suspend( struct spi_device *client, pm_message_t mesg );
-static int32_t spi_resume( struct spi_device *client );
+/* SHMDS_HUB_0130_01 del S */
+//static int32_t spi_suspend( struct spi_device *client, pm_message_t mesg );
+//static int32_t spi_resume( struct spi_device *client );
+/* SHMDS_HUB_0130_01 del E */
+/* SHMDS_HUB_0130_01 mod S */
+static int32_t pm_suspend( struct device *dev );
+static int32_t pm_resume( struct device *dev );
+/* SHMDS_HUB_0130_01 mod E */
 static void    spi_shutdown( struct spi_device *client );
 
 static struct spi_device *client_mcu;
@@ -73,17 +79,25 @@ static const struct of_device_id shshub_dev_dt_match[] = {
 #endif /* CONFIG_OF */
 #endif
 
+// SHMDS_HUB_0130_01 add 
+static const struct dev_pm_ops shub_pm_ops = {
+    .suspend     = pm_suspend,
+    .resume      = pm_resume,
+};
+// SHMDS_HUB_0130_01 add 
+
 static struct spi_driver interface_driver = {
     .probe       = spi_probe,
     .driver = {
         .name    = SENOSR_HUB_DRIVER_NAME,
         .bus     = &spi_bus_type,
         .owner   = THIS_MODULE,
+        .pm      = &shub_pm_ops,               // SHMDS_HUB_0130_01 add 
         .of_match_table = shshub_dev_dt_match, // SHMDS_HUB_0104_05 add
     },
     .remove      = spi_remove,
-    .suspend     = spi_suspend,
-    .resume      = spi_resume,
+//    .suspend     = spi_suspend,              // SHMDS_HUB_0130_01 del
+//    .resume      = spi_resume,               // SHMDS_HUB_0130_01 del
     .shutdown    = spi_shutdown,
 };
 
@@ -92,17 +106,33 @@ static int32_t spi_remove( struct spi_device *client )
     return 0;
 }
 
-static int32_t spi_suspend( struct spi_device *client, pm_message_t mesg )
+/* SHMDS_HUB_0130_01 del S */
+//static int32_t spi_suspend( struct spi_device *client, pm_message_t mesg )
+//{
+//    shub_suspend(client, mesg);
+//    return 0;
+//}
+
+//static int32_t spi_resume( struct spi_device *client )
+//{
+//    shub_resume(client);
+//    return 0;
+//}
+/* SHMDS_HUB_0130_01 del E */
+/* SHMDS_HUB_0130_01 add S */
+static int32_t pm_suspend( struct device *dev )
 {
-    shub_suspend(client, mesg);
+    pm_message_t mesg;
+    shub_suspend(dev, mesg);
     return 0;
 }
 
-static int32_t spi_resume( struct spi_device *client )
+static int32_t pm_resume( struct device *dev )
 {
-    shub_resume(client);
+    shub_resume(dev);
     return 0;
 }
+/* SHMDS_HUB_0130_01 add E */
 
 static void spi_shutdown( struct spi_device *client )
 {

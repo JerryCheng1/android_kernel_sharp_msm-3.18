@@ -3492,7 +3492,7 @@ static int smbchg_system_temp_level_set(struct smbchg_chip *chip,
 	} else {
 #ifdef CONFIG_BATTERY_SH
 		if(chip->usb_psy) {
-			chip->usb_psy->get_property(chip->usb_psy, POWER_SUPPLY_PROP_TYPE, &prop);
+			power_supply_get_property(chip->usb_psy, POWER_SUPPLY_PROP_TYPE, &prop);
 		}
 
 		if (prop.intval != POWER_SUPPLY_TYPE_USB_HVDCP) {
@@ -4347,12 +4347,19 @@ static void check_battery_type(struct smbchg_chip *chip)
 	}
 }
 
+#ifdef CONFIG_BATTERY_SH
+#define USB_DCP_CURRENT_LIMIT 1500
+#define USB_HVDCP_CURRENT_LIMIT 1200
+#endif/* CONFIG_BATTERY_SH */
+
 static void smbchg_external_power_changed(struct power_supply *psy)
 {
 	struct smbchg_chip *chip = power_supply_get_drvdata(psy);
 	int rc, soc;
 #ifdef CONFIG_BATTERY_SH
 	int usb_type = -1;
+	int current_limit = 0;
+	union power_supply_propval prop = {0,};
 	union power_supply_propval property = {0,};
 #endif /* CONFIG_BATTERY_SH */
 
@@ -4373,8 +4380,16 @@ static void smbchg_external_power_changed(struct power_supply *psy)
 									rc);
 	}
 
+	rc = power_supply_get_property(chip->usb_psy,
+				POWER_SUPPLY_PROP_CHARGING_ENABLED, &prop);
+	if (rc == 0)
+		vote(chip->usb_suspend_votable, POWER_SUPPLY_EN_VOTER,
+				!prop.intval, 0);
+
+	current_limit = chip->usb_current_max / 1000;
+
 #ifdef CONFIG_BATTERY_SH
-		rc = chip->usb_psy->get_property(chip->usb_psy,
+		rc = power_supply_get_property(chip->usb_psy,
 					POWER_SUPPLY_PROP_VOLTAGE_MAX, &prop);
 		if (rc < 0) {
 			dev_err(chip->dev,
@@ -4384,7 +4399,7 @@ static void smbchg_external_power_changed(struct power_supply *psy)
 			smbchg_hvdcp_voltage_set(chip);
 		}
 		/* usb judge */
-		rc = chip->usb_psy->get_property(chip->usb_psy,
+		rc = power_supply_get_property(chip->usb_psy,
 				POWER_SUPPLY_PROP_TYPE, &property);
 		if (rc < 0) {
 			dev_err(chip->dev, "could not read USB type rc=%d\n",rc);
@@ -6620,12 +6635,12 @@ static int smbchg_get_iusb(struct smbchg_chip *chip)
 	if (chip->vchg_vadc_dev && chip->vchg_adc_channel != -EINVAL) {
 #ifdef CONFIG_BATTERY_SH
 		mutex_lock( (&chip->vdir_chg_pin_lock) );
-		qpnp_smb_vdir_chg_pin_enable(true);
+		qpnp_smb_vdir_chg_pin_enable(chip->regmap, true);
 #endif /* CONFIG_BATTERY_SH */
 		rc = qpnp_vadc_read(chip->vchg_vadc_dev,
 				chip->vchg_adc_channel, &adc_result);
 #ifdef CONFIG_BATTERY_SH
-		qpnp_smb_vdir_chg_pin_enable(false);
+		qpnp_smb_vdir_chg_pin_enable(chip->regmap, false);
 		mutex_unlock( (&chip->vdir_chg_pin_lock) );
 #endif /* CONFIG_BATTERY_SH */
 		if (rc) {
@@ -6640,10 +6655,6 @@ static int smbchg_get_iusb(struct smbchg_chip *chip)
 
 	return iusb_ua;
 }
-#ifdef CONFIG_BATTERY_SH
-#define USB_DCP_CURRENT_LIMIT 1500
-#define USB_HVDCP_CURRENT_LIMIT 1200
-#endif/* CONFIG_BATTERY_SH */
 
 static enum power_supply_property smbchg_battery_properties[] = {
 	POWER_SUPPLY_PROP_STATUS,
@@ -7297,8 +7308,8 @@ static irqreturn_t power_ok_handler(int irq, void *_chip)
 				}
 				schedule_delayed_work(&chip->vbus_osc_wa_return_check_work,
 						msecs_to_jiffies(vbus_osc_wa_return_check_ms));
-				power_supply_set_health_state(chip->usb_psy,
-						POWER_SUPPLY_HEALTH_UNSPEC_FAILURE);
+				chip->usb_health = POWER_SUPPLY_HEALTH_UNSPEC_FAILURE;
+				power_supply_changed(chip->usb_psy);
 			}
 			chip->power_ok_irq_count = 0;
 		}
@@ -9256,7 +9267,8 @@ static void smbchg_vbus_osc_wa_return_check_work(struct work_struct *work)
 		if (rc < 0) {
 			dev_err(chip->dev, "Couldn't dc disable vbus wa rc=%d\n", rc);
 		}
-		power_supply_set_health_state(chip->usb_psy, POWER_SUPPLY_HEALTH_GOOD);
+		chip->usb_health = POWER_SUPPLY_HEALTH_GOOD;
+		power_supply_changed(chip->usb_psy);
 	} else {
 		cancel_delayed_work(&chip->vbus_osc_wa_return_check_work);
 		schedule_delayed_work(&chip->vbus_osc_wa_return_check_work,
@@ -9879,7 +9891,7 @@ static int smbchg_probe(struct platform_device *pdev)
 #ifdef CONFIG_BATTERY_SH
 	rc = sh_smbchg_hw_init(chip);
 	if (rc < 0) {
-		dev_err(&spmi->dev,
+		dev_err(&pdev->dev,
 			"Unable to intialize sh_hardware rc = %d\n", rc);
 		goto out;
 	}

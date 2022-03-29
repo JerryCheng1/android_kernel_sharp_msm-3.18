@@ -462,19 +462,28 @@ static const struct of_device_id shgrip_dev_dt_match[] = {
 #define shgrip_dev_dt_match NULL;
 #endif /* CONFIG_OF */
 
-static int shgrip_suspend(struct spi_device *spi, pm_message_t mesg);
-static int shgrip_resume(struct spi_device *spi);
+//static int shgrip_suspend(struct spi_device *spi, pm_message_t mesg);
+//static int shgrip_resume(struct spi_device *spi);
+
+static int32_t shgrip_suspend(struct device *dev);
+static int32_t shgrip_resume(struct device *dev);
+
+static const struct dev_pm_ops shgrip_pm_ops = {
+    .suspend     = shgrip_suspend,
+    .resume      = shgrip_resume,
+};
 
 static struct spi_driver shgrip_dev_spi_driver = {
 	.driver = {
-		.name = SHGRIP_DEVNAME,
+		.name  = SHGRIP_DEVNAME,
 		.owner = THIS_MODULE,
+		.pm    = &shgrip_pm_ops,
 		.of_match_table = shgrip_dev_dt_match,
 	},
 	.probe = shgrip_dev_spi_probe,
 	.remove = shgrip_dev_spi_remove,
-	.suspend = shgrip_suspend,
-	.resume = shgrip_resume,
+	//.suspend = shgrip_suspend,
+	//.resume = shgrip_resume,
 };
 
 /* --------------------------------------------------------- */
@@ -747,6 +756,7 @@ void shgrip_qos_end(void)
 /* ------------------------------------------------------------------------- */
 /* shgrip_suspend                                                            */
 /* ------------------------------------------------------------------------- */
+/*
 static int shgrip_suspend(struct spi_device *spi, pm_message_t mesg)
 {
 	struct shgrip_drv *ctrl;
@@ -766,11 +776,26 @@ static int shgrip_suspend(struct spi_device *spi, pm_message_t mesg)
 	mutex_unlock(&shgrip_io_lock);
 	
 	return 0;
+}*/
+static int32_t shgrip_suspend(struct device *dev)
+{
+	struct shgrip_drv *ctrl;
+	mutex_lock(&shgrip_io_lock);
+	SHGRIP_DBG("start\n");
+	ctrl = (struct shgrip_drv *)spi_get_drvdata(to_spi_device(dev));
+	ctrl->suspended = true;
+	if (ctrl->state == STATE_SENSOR_ON) {
+		shgrip_sys_disable_irq(ctrl);
+		shgrip_sys_enable_irq_wake(ctrl);
+	}
+	mutex_unlock(&shgrip_io_lock);
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */
 /* shgrip_resume                                                             */
 /* ------------------------------------------------------------------------- */
+/*
 static int shgrip_resume(struct spi_device *spi)
 {
 	struct shgrip_drv *ctrl;
@@ -790,8 +815,21 @@ static int shgrip_resume(struct spi_device *spi)
 	mutex_unlock(&shgrip_io_lock);
 	
 	return 0;
+}*/
+static int32_t shgrip_resume(struct device *dev)
+{
+	struct shgrip_drv *ctrl;
+	mutex_lock(&shgrip_io_lock);
+	SHGRIP_DBG("start\n");
+	ctrl = (struct shgrip_drv *)spi_get_drvdata(to_spi_device(dev));
+	ctrl->suspended = false;
+	if (ctrl->state == STATE_SENSOR_ON) {
+		shgrip_sys_enable_irq(ctrl);
+		shgrip_sys_disable_irq_wake(ctrl);
+	}
+	mutex_unlock(&shgrip_io_lock);
+	return 0;
 }
-
 /* ========================================================================= */
 /* SHGRIP Serial Interface Function                                          */
 /* ========================================================================= */

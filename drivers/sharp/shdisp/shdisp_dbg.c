@@ -694,7 +694,7 @@ static size_t shdisp_dbg_get_stacktrace(char *stackdumpbuf, size_t length)
             break;
         }
 
-        urc = unwind_frame(&frame);
+        urc = unwind_frame(NULL, &frame);
         length -= rtn;
         writelen += rtn;
         stackdumpbuf += rtn;

@@ -11,7 +11,7 @@
  */
 
 &soc {
-	tlmm: pinctrl@01010000 {
+	tlmm: pinctrl@1010000 {
 		pcie0 {
 			/* GPIO35*/
 			pcie0_perst_default: pcie0_perst_default {
@@ -34,15 +34,15 @@
 /* [WLAN][SHARP] 2016.01.29 Mod for GPIO 46 End */
 	};
 
-	pcie0: qcom,pcie@00600000 {
+	pcie0: qcom,pcie@600000 {
 		status = "ok";
 	};
 
-	pcie1: qcom,pcie@00608000 {
+	pcie1: qcom,pcie@608000 {
 		status = "disabled";
 	};
 
-	pcie2: qcom,pcie@00610000 {
+	pcie2: qcom,pcie@610000 {
 		status = "disabled";
 	};
 };

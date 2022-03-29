@@ -2478,14 +2478,38 @@ static int mmc_blk_err_check(struct mmc_card *card,
 			return MMC_BLK_CMD_ERR;
 	}
 
-#ifndef CONFIG_ERR_DETECT_EMMC_CUST_SH
 	/* if general error occurs, retry the write operation. */
 	if (gen_err) {
+#ifdef CONFIG_ERR_DETECT_EMMC_CUST_SH
+		if (!strncmp(mmc_hostname(card->host),
+			HOST_MMC_MMC,sizeof(HOST_MMC_MMC)) &&
+			((brq->cmd.opcode == MMC_WRITE_BLOCK) ||
+			 (brq->cmd.opcode == MMC_WRITE_MULTIPLE_BLOCK))) {
+			/* detect write protect violation error */
+			if ((emmc_card_status_resp & R1_WP_VIOLATION) != 0) {
+				pr_err( "%s: detect WP_VIOLATION"
+				"(CMD%d,arg=0x%x,status=0x%x)\n",
+				mmc_hostname(card->host), brq->cmd.opcode,
+				brq->cmd.arg, emmc_card_status_resp);
+				emmc_card_status_resp = 0;
+				return MMC_BLK_NOMEDIUM;
+			}
+			/* detect gen/cc error */
+			if ((emmc_card_status_resp & RESP0_ERR_BITS_MASK) != 0) {
+				pr_err("%s: error found in resp[0]"
+						" in status[%08x]\n",
+						mmc_hostname(card->host),
+						emmc_card_status_resp );
+				emmc_card_status_resp = 0;
+				brq->data.bytes_xfered = 0;
+				return MMC_BLK_RETRY;
+			}
+		}
+#endif /* CONFIG_ERR_DETECT_EMMC_CUST_SH */
 		pr_warn("%s: retrying write for general error\n",
 				req->rq_disk->disk_name);
 		return MMC_BLK_RETRY;
 	}
-#endif /* CONFIG_ERR_DETECT_EMMC_CUST_SH */
 
 	if (brq->data.error) {
 		if (need_retune && !brq->retune_retry_done) {
@@ -2508,36 +2532,6 @@ static int mmc_blk_err_check(struct mmc_card *card,
 			return MMC_BLK_CMD_ERR;
 		}
 	}
-
-#ifdef CONFIG_ERR_DETECT_EMMC_CUST_SH
-	if (!strncmp(mmc_hostname(card->host),HOST_MMC_MMC,sizeof(HOST_MMC_MMC)) &&
-	    ((brq->cmd.opcode == MMC_WRITE_BLOCK) ||
-	     (brq->cmd.opcode == MMC_WRITE_MULTIPLE_BLOCK))) {
-		/* detect write protect violation error */
-		if (((emmc_stop_resp & R1_WP_VIOLATION) != 0) ||
-		    ((emmc_card_status_resp & R1_WP_VIOLATION) != 0)) {
-			pr_err( "%s: detect WP_VIOLATION"
-			"(CMD%d,arg=0x%x,status=0x%x,stop_resp=0x%x)\n",
-			mmc_hostname(card->host), brq->cmd.opcode,
-			brq->cmd.arg, emmc_card_status_resp, emmc_stop_resp );
-			emmc_stop_resp        = 0;
-			emmc_card_status_resp = 0;
-			return MMC_BLK_NOMEDIUM;
-		}
-		/* detect gen/cc error */
-		if (((emmc_stop_resp & RESP0_ERR_BITS_MASK) != 0) ||
-		    ((emmc_card_status_resp & RESP0_ERR_BITS_MASK) != 0)) {
-			pr_err("%s: error found in resp[0]"
-					" in status[%08x] or stop[%08x]\n",
-					mmc_hostname(card->host),
-					emmc_card_status_resp, emmc_stop_resp );
-			emmc_stop_resp        = 0;
-			emmc_card_status_resp = 0;
-			brq->data.bytes_xfered = 0;
-			return MMC_BLK_RETRY;
-		}
-	}
-#endif /* CONFIG_ERR_DETECT_EMMC_CUST_SH */
 
 	if (!brq->data.bytes_xfered)
 		return MMC_BLK_RETRY;
@@ -5255,6 +5249,7 @@ static int mmc_blk_ioctl_ffu(struct block_device *bdev,
 	unsigned char *data_buf;
 	unsigned long buf_bytes;
 	u8 ext_csd[512];
+	u8 *ext_csd_work;
 
 	unsigned long vers = 0;
 	unsigned long src_version = 0;
@@ -5283,13 +5278,15 @@ static int mmc_blk_ioctl_ffu(struct block_device *bdev,
 
 	mmc_get_card(card);
 
-	err = mmc_send_ext_csd(card, ext_csd);
+	err = mmc_get_ext_csd(card, &ext_csd_work);
 	if (err) {
 		pr_err("%s: error %d reading ext_csd\n",
 						mmc_hostname(card->host), err);
 		err = -1;
 		goto err_rel;
 	}
+	memcpy(ext_csd, ext_csd_work, 512);
+	kfree(ext_csd_work);
 
 	if (ext_csd[EXT_CSD_REV] < 7) {
 		pr_info("FFU not supported. ext_csd revision = %x.\n",
@@ -5377,13 +5374,15 @@ static int mmc_blk_ioctl_ffu(struct block_device *bdev,
 			break;
 		}
 
-		err = mmc_send_ext_csd(card, ext_csd);
+		err = mmc_get_ext_csd(card, &ext_csd_work);
 		if (err) {
 			pr_err("%s: error %d reading ext_csd\n",
 						mmc_hostname(card->host), err);
 			err = -1;
 			break;
 		}
+		memcpy(ext_csd, ext_csd_work, 512);
+		kfree(ext_csd_work);
 
 		/* Check NUMBER_OF_FW_SECTORS_CORRECTLY_PROGRAMMED */
 		num_sec = 0;
@@ -5436,13 +5435,15 @@ static int mmc_blk_ioctl_ffu(struct block_device *bdev,
 			break;
 		}
 
-		err = mmc_send_ext_csd(card, ext_csd);
+		err = mmc_get_ext_csd(card, &ext_csd_work);
 		if (err) {
 			pr_err("%s: error %d reading ext_csd\n",
 						mmc_hostname(card->host), err);
 			err = -1;
 			break;
 		}
+		memcpy(ext_csd, ext_csd_work, 512);
+		kfree(ext_csd_work);
 
 		if (ext_csd[EXT_CSD_FFU_STATUS] != 0x0) {
 			pr_err("FW install err. FFU STATUS = %X\n",

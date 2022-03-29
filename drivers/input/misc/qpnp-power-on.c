@@ -2036,24 +2036,24 @@ static int sh_qpnp_ps_hold_config(struct qpnp_pon *pon)
 	u8 reg;
 
 	if(ps_hold_for_ramdump == 1) {
-		if(PMIC_MASTER_DEVICE_ID == pon->spmi->sid) {
+		if(PMIC_MASTER_DEVICE_ID == to_spmi_device(pon->pdev->dev.parent)->usid) {
 			reg = PMIC_WARM_RESET;
-			rc = spmi_ext_register_writel(pon->spmi->ctrl, pon->spmi->sid,
-							PON_PS_HOLD_RESET_CTL, &reg, 1);
-		} else if(PMIC_SLAVE_DEVICE_ID == pon->spmi->sid) {
+			rc = regmap_write(pon->regmap,
+							PON_PS_HOLD_RESET_CTL, reg);
+		} else if(PMIC_SLAVE_DEVICE_ID == to_spmi_device(pon->pdev->dev.parent)->usid) {
 			reg = PMIC_WARM_RESET;
-			rc = spmi_ext_register_writel(pon->spmi->ctrl, pon->spmi->sid,
-							PON_PS_HOLD_RESET_CTL, &reg, 1);
+			rc = regmap_write(pon->regmap,
+							PON_PS_HOLD_RESET_CTL, reg);
 		}
 	} else {
-		if(PMIC_MASTER_DEVICE_ID == pon->spmi->sid) {
+		if(PMIC_MASTER_DEVICE_ID == to_spmi_device(pon->pdev->dev.parent)->usid) {
 			reg = PMIC_DVDD_HARD_RESET;
-			rc = spmi_ext_register_writel(pon->spmi->ctrl, pon->spmi->sid,
-							PON_PS_HOLD_RESET_CTL, &reg, 1);
-		} else if(PMIC_SLAVE_DEVICE_ID == pon->spmi->sid) {
+			rc = regmap_write(pon->regmap,
+							PON_PS_HOLD_RESET_CTL, reg);
+		} else if(PMIC_SLAVE_DEVICE_ID == to_spmi_device(pon->pdev->dev.parent)->usid) {
 			reg = PMIC_XVDD_SHUTDOWN;
-			rc = spmi_ext_register_writel(pon->spmi->ctrl, pon->spmi->sid,
-							PON_PS_HOLD_RESET_CTL, &reg, 1);
+			rc = regmap_write(pon->regmap,
+							PON_PS_HOLD_RESET_CTL, reg);
 		}
 	}
 
@@ -2340,7 +2340,7 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 #ifdef CONFIG_BATTERY_SH
 	rc = sh_qpnp_ps_hold_config(pon);
 	if (rc) {
-		dev_err(&spmi->dev,"Unable to config ps hold reset type rc: %d\n", rc);
+		dev_err(&pdev->dev,"Unable to config ps hold reset type rc: %d\n", rc);
 		return rc;
 	}
 #endif /* CONFIG_BATTERY_SH */

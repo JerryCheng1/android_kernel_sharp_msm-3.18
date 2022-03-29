@@ -435,8 +435,14 @@ int32_t shub_resume( struct i2c_client *client );
 #endif
 #ifdef CONFIG_HOSTIF_SPI
 int shub_set_gpio_no( struct spi_device *client ); /* SHMDS_HUB_0110_01 add */
-int32_t shub_suspend( struct spi_device *client, pm_message_t mesg );
-int32_t shub_resume( struct spi_device *client );
+/* SHMDS_HUB_0130_01 del S */ 
+//int32_t shub_suspend( struct spi_device *client, pm_message_t mesg );
+//int32_t shub_resume( struct spi_device *client );
+/* SHMDS_HUB_0130_01 del E */
+/* SHMDS_HUB_0130_01 add S */ 
+int32_t shub_suspend( struct device *dev, pm_message_t mesg );
+int32_t shub_resume( struct device *dev );
+/* SHMDS_HUB_0130_01 add S */ 
 #endif
 void shub_user_reset(void);                        /* SHMDS_HUB_0304_02 add */
 int32_t shub_initialize( void );

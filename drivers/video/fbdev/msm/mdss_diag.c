@@ -841,9 +841,9 @@ static int __mdss_diag_mipi_clkchg_panel_clk_data(struct mdss_panel_data *pdata)
 	ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
 
-	ret = mdss_dsi_clk_div_config(pinfo, pinfo->mipi.frame_rate);
+	ret = mdss_dsi_calc_bitclk(pinfo, pinfo->mipi.frame_rate);
 	if (ret) {
-		pr_err("LCDERR:[%s] mdss_dsi_clk_div_config err.\n", __func__);
+		pr_err("LCDERR:[%s] mdss_dsi_calc_bitclk err.\n", __func__);
 		return ret;
 	}
 	ctrl_pdata->pclk_rate =

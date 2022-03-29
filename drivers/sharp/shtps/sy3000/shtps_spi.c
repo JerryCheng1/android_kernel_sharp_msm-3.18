@@ -642,6 +642,7 @@ static int shtps_spi_remove(struct spi_device *spi_p)
 
 /* -----------------------------------------------------------------------------------
 */
+/*
 static int shtps_spi_suspend(struct spi_device *spi_p, pm_message_t mesg)
 {
 	extern int shtps_rmi_core_suspend(struct shtps_rmi_spi *, pm_message_t);
@@ -650,14 +651,36 @@ static int shtps_spi_suspend(struct spi_device *spi_p, pm_message_t mesg)
 
 	_log_msg_sync( LOGMSG_ID__SUSPEND, "");
 	return ret;
+}*/
+
+static int shtps_pm_suspend(struct device *dev)
+{
+	pm_message_t mesg;
+	extern int shtps_rmi_core_suspend(struct shtps_rmi_spi *, pm_message_t);
+	struct shtps_rmi_spi *ts_p = spi_get_drvdata(to_spi_device(dev));
+	int ret = shtps_rmi_core_suspend(ts_p, mesg);
+
+	_log_msg_sync( LOGMSG_ID__SUSPEND, "");
+	return ret;
 }
 
 /* -----------------------------------------------------------------------------------
 */
+/*
 static int shtps_spi_resume(struct spi_device *spi_p)
 {
 	extern int shtps_rmi_core_resume(struct shtps_rmi_spi *);
 	struct shtps_rmi_spi *ts_p = spi_get_drvdata(spi_p);
+	int ret = shtps_rmi_core_resume(ts_p);
+
+	_log_msg_sync( LOGMSG_ID__RESUME, "");
+	return ret;
+}*/
+
+static int shtps_pm_resume(struct device *dev)
+{
+	extern int shtps_rmi_core_resume(struct shtps_rmi_spi *);
+	struct shtps_rmi_spi *ts_p = spi_get_drvdata(to_spi_device(dev));
 	int ret = shtps_rmi_core_resume(ts_p);
 
 	_log_msg_sync( LOGMSG_ID__RESUME, "");
@@ -673,16 +696,22 @@ static struct of_device_id shtps_rmi_table[] = {
 };
 #endif
 
+static const struct dev_pm_ops shtps_pm_ops = {
+    .suspend     = shtps_pm_suspend,
+    .resume      = shtps_pm_resume,
+};
+
 static struct spi_driver shtps_spi_driver = {
 	.probe		= shtps_spi_probe,
 	.remove		= shtps_spi_remove,
-	.suspend	= shtps_spi_suspend,
-	.resume		= shtps_spi_resume,
+	//.suspend	= shtps_spi_suspend,
+	//.resume		= shtps_spi_resume,
 	.driver		= {
 		#ifdef CONFIG_OF // Open firmware must be defined for dts useage
 			.of_match_table = shtps_rmi_table,
 		#endif
-		.name = "shtps_rmi",	// SH_TOUCH_DEVNAME,
+		.pm    = &shtps_pm_ops,
+		.name  = "shtps_rmi",	// SH_TOUCH_DEVNAME,
 		.owner = THIS_MODULE,
 	},
 };

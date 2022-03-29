@@ -3399,8 +3399,8 @@ static void mdss_mdp_overlay_handle_vsync(struct mdss_mdp_ctl *ctl,
 	fps_low_mode = mdss_fb_base_fps_low_mode();
 	fps_low_mode = (fps_low_mode > 0) ? fps_low_mode : MDSS_BASE_FPS_DEFAULT;
 /* COORDINATOR SH_Customize BUILDERR MODIFY start */
-//	if ((mdss_panel_get_framerate(&(ctl->panel_data->panel_info)) / fps_low_mode) > mdp5_data->fpslow_count) {
-	if ((mdss_panel_get_framerate(&(ctl->panel_data->panel_info), FPS_RESOLUTION_DEFAULT) / fps_low_mode) > mdp5_data->fpslow_count) {
+	if ((mdss_panel_get_framerate(&(ctl->panel_data->panel_info)) / fps_low_mode) > mdp5_data->fpslow_count) {
+//	if ((mdss_panel_get_framerate(&(ctl->panel_data->panel_info), FPS_RESOLUTION_DEFAULT) / fps_low_mode) > mdp5_data->fpslow_count) {
 /* COORDINATOR SH_Customize BUILDERR MODIFY end */
 		pr_debug("%s: return....\n", __func__);
 		return;

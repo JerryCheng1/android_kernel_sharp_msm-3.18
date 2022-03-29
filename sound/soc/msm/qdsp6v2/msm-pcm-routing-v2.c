@@ -18748,6 +18748,8 @@ int msm_routing_get_is_music_play(void)
 	spin_lock_irqsave(&spinlock, flags);
 	if (a2dp_mode)
 		music_type |= 1 << 3;
+/* COORDINATOR Qualcomm_CS BUILDERR MODIFY start */
+#if 0
 	if (test_bit(0, &msm_bedais[2].fe_sessions))
 		music_type |= 1 << 0;
 	if (test_bit(4, &msm_bedais[2].fe_sessions))
@@ -18756,6 +18758,17 @@ int msm_routing_get_is_music_play(void)
 		music_type |= 1 << 2;
 	if (test_bit(3, &msm_bedais[2].fe_sessions))
 		music_type |= 1 << 4;
+#else
+	if (test_bit(0, &msm_bedais[2].fe_sessions[0]))
+		music_type |= 1 << 0;
+	if (test_bit(4, &msm_bedais[2].fe_sessions[0]))
+		music_type |= 1 << 1;
+	if (test_bit(1, &msm_bedais[2].fe_sessions[0]))
+		music_type |= 1 << 2;
+	if (test_bit(3, &msm_bedais[2].fe_sessions[0]))
+		music_type |= 1 << 4;
+#endif
+/* COORDINATOR Qualcomm_CS BUILDERR MODIFY end */
 	spin_unlock_irqrestore(&spinlock, flags);
 
 	return music_type;

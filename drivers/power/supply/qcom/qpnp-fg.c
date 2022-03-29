@@ -6844,8 +6844,8 @@ wait:
 	/*
 	 * Configure stby-current and slope-limit-coefficient from fg device
 	 */
-	if (of_find_property(chip->spmi->dev.of_node, "qcom,stby-current", NULL)) {
-		rc = of_property_read_u32_index(chip->spmi->dev.of_node, "qcom,stby-current", 0, &tmp);
+	if (of_find_property(chip->pdev->dev.of_node, "qcom,stby-current", NULL)) {
+		rc = of_property_read_u32_index(chip->pdev->dev.of_node, "qcom,stby-current", 0, &tmp);
 		if (rc) {
 			pr_err("Error reading stby current rc=%d\n", rc);
 		}
@@ -6863,8 +6863,8 @@ wait:
 		}
 	}
 
-	if (of_find_property(chip->spmi->dev.of_node, "qcom,slope-limit-coefficient", NULL)) {
-		rc = of_property_read_u32_index(chip->spmi->dev.of_node, "qcom,slope-limit-coefficient", 0, &tmp);
+	if (of_find_property(chip->pdev->dev.of_node, "qcom,slope-limit-coefficient", NULL)) {
+		rc = of_property_read_u32_index(chip->pdev->dev.of_node, "qcom,slope-limit-coefficient", 0, &tmp);
 		if (rc) {
 			pr_err("Error reading slope limit rc=%d\n", rc);
 		}

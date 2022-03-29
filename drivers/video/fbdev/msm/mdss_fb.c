@@ -5045,6 +5045,9 @@ err:
 		kfree(ds_data);
 	}
 
+	return ret;
+}
+
 #ifdef CONFIG_SHDISP /* CUST_ID_00035 */
 static int mdss_fb_change_base_fps_low(struct msm_fb_data_type *mfd, unsigned long *argp)
 {
@@ -5057,8 +5060,8 @@ static int mdss_fb_change_base_fps_low(struct msm_fb_data_type *mfd, unsigned lo
 	}
 
 /* COORDINATOR SH_Customize BUILDERR MODIFY start */
-//	if (notify <= 0 || notify > mdss_panel_get_framerate(mfd->panel_info)) {
-	if (notify <= 0 || notify > mdss_panel_get_framerate(mfd->panel_info, FPS_RESOLUTION_DEFAULT)) {
+	if (notify <= 0 || notify > mdss_panel_get_framerate(mfd->panel_info)) {
+//	if (notify <= 0 || notify > mdss_panel_get_framerate(mfd->panel_info, FPS_RESOLUTION_DEFAULT)) {
 /* COORDINATOR SH_Customize BUILDERR MODIFY end */
 		pr_err("%s:notify invalid(%d)\n", __func__, notify);
 		return -EINVAL;
