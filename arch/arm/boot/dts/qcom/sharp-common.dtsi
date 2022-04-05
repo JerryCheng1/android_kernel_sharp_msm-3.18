@@ -17,6 +17,7 @@
 #include "sharp-common-pm8996.dtsi"
 #include "sharp-common-pmi8994.dtsi"
 #include "sharp-common-sdcc.dtsi"
+#include "sharp-ramoops.dtsi"
 
 /*----------------------------------------*/
 /* Qualcomm settings.                     */
