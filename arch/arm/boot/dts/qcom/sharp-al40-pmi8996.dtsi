@@ -91,7 +91,7 @@
 &pmi8994_charger {
 };
 
-/{
+&vendor{
 	sharp_al40_batterydata: qcom,battery-data {
 		#include "batterydata-sharp-al40.dtsi"
 	};
