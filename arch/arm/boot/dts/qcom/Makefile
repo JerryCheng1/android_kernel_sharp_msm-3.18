@@ -1,5 +1,5 @@
 ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
-#dtbo-$(CONFIG_ARCH_MSM8996) += \
+dtbo-$(CONFIG_ARCH_MSM8996) += \
 	msm8996-mtp-overlay.dtbo \
 	msm8996-cdp-overlay.dtbo \
 	apq8096pro-v1.1-auto-adp-overlay.dtbo \
@@ -9,23 +9,30 @@ ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
 	apq8096pro-auto-cdp-overlay.dtbo \
 	msm8996pro-v1.1-auto-cdp-overlay.dtbo
 
-#msm8996-mtp-overlay.dtbo-base :=  msm8996pro-v1.1-pmi8996.dtb \
+msm8996-mtp-overlay.dtbo-base :=  msm8996pro-v1.1-pmi8996.dtb \
 				msm8996-v3-pmi8996.dtb \
 				msm8996pro-v1.1-pmi8994.dtb \
 				msm8996-v313-pmi8994.dtb \
 				msm8996-v30-pm8994-pmi8994-pm8004.dtb
 
-#msm8996-cdp-overlay.dtbo-base :=  msm8996-v3-pmi8994.dtb \
+msm8996-cdp-overlay.dtbo-base :=  msm8996-v3-pmi8994.dtb \
 				 msm8996pro-pmi8994-pm8004.dtb
 
-#apq8096pro-v1.1-auto-adp-overlay.dtbo-base := apq8096pro-v1.1-auto.dtb
-#apq8096pro-v1.1-auto-adp-lite-overlay.dtbo-base := apq8096pro-v1.1-auto.dtb
-#msm8996pro-auto-adp-overlay.dtbo-base := msm8996pro-auto.dtb
-#msm8996pro-auto-adp-lite-overlay.dtbo-base := msm8996pro-auto.dtb
-#apq8096pro-auto-cdp-overlay.dtbo-base := apq8096pro-auto.dtb
-#msm8996pro-v1.1-auto-cdp-overlay.dtbo-base := msm8996pro-v1.1-auto.dtb
+apq8096pro-v1.1-auto-adp-overlay.dtbo-base := apq8096pro-v1.1-auto.dtb
+apq8096pro-v1.1-auto-adp-lite-overlay.dtbo-base := apq8096pro-v1.1-auto.dtb
+msm8996pro-auto-adp-overlay.dtbo-base := msm8996pro-auto.dtb
+msm8996pro-auto-adp-lite-overlay.dtbo-base := msm8996pro-auto.dtb
+apq8096pro-auto-cdp-overlay.dtbo-base := apq8096pro-auto.dtb
+msm8996pro-v1.1-auto-cdp-overlay.dtbo-base := msm8996pro-v1.1-auto.dtb
 else
-#dtb-$(CONFIG_ARCH_MSM8996) += msm8996-v2-pmi8994-cdp.dtb \
+ifeq ($(CONFIG_ARCH_PA32),y)
+dtb-$(CONFIG_ARCH_PA32) += \
+       msm8996-sharp-pa32-v2-fluid.dtb \
+       msm8996-sharp-pa32-v2-pmi8996-fluid.dtb \
+       msm8996-sharp-pa32-v3-fluid.dtb \
+       msm8996-sharp-pa32-v3-pmi8996-fluid.dtb
+else
+dtb-$(CONFIG_ARCH_MSM8996) += msm8996-v2-pmi8994-cdp.dtb \
 	msm8996-v2-pmi8994-mtp.dtb \
 	msm8996-v2-pmi8994-pmk8001-cdp.dtb \
 	msm8996-v2-pmi8994-pmk8001-mtp.dtb \
@@ -142,6 +149,7 @@ else
 	apq8096-v3-pmi8996-mdm9x55-slimbus-mtp.dtb \
 	apq8096-v3-pmi8996-dragonboard.dtb \
 	msm8996-auto-mizar.dtb
+endif
 endif
 
 dtb-$(CONFIG_MSM_GVM_QUIN) += vplatform-lfv-msm8996-telematics.dtb \
@@ -324,12 +332,6 @@ dtb-$(CONFIG_ARCH_SDM630) += sdm630-rumi.dtb \
 	sdm455-cdp.dtb \
 	sdm455-rcm.dtb \
 	sdm455-internal-codec-rcm.dtb
-
-dtb-$(CONFIG_ARCH_PA32) += \
-       msm8996-sharp-pa32-v2-fluid.dtb \
-       msm8996-sharp-pa32-v2-pmi8996-fluid.dtb \
-       msm8996-sharp-pa32-v3-fluid.dtb \
-       msm8996-sharp-pa32-v3-pmi8996-fluid.dtb
 
 ifeq ($(CONFIG_ARM64),y)
 always          := $(dtb-y)

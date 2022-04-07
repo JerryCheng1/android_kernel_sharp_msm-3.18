@@ -79,10 +79,6 @@
 	qcom,mdss-pref-prim-intf = "dsi";
 };
 
-&mdss_dsi {
-	hw-config = "split_dsi";
-};
-
 &mdss_dsi0 {
 	qcom,dsi-pref-prim-pan=<&dsi_shdisp_hayabusa_dual_cmd>;
 	qcom,lane-map = "lane_map_0123";
